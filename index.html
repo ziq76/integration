@@ -1,1 +1,676 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Daily Protocol | Integration</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;600;800;900&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-black text-zinc-100 min-h-screen flex flex-col items-center pb-24 px-4 pt-4 selection:bg-zinc-800">
 
+  <main class="w-full max-w-md space-y-4">
+    
+    <!-- Top Global Header -->
+    <header class="border-b border-zinc-900 pb-3 flex justify-between items-baseline">
+      <div>
+        <h1 id="subHeaderLabel" class="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-500 mono">DISCIPLINE PROTOCOL</h1>
+        <div id="moduleTitle" class="text-xl font-black tracking-tight text-white uppercase">MAGHRIB CYCLE</div>
+      </div>
+      <div id="globalDate" class="mono text-xs text-zinc-500">Memuatkan...</div>
+    </header>
+
+    <!-- ==================== TAB 1: MAGHRIB CYCLE ==================== -->
+    <section id="tab-maghrib" class="tab-content space-y-4">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4">
+          <span class="text-[10px] mono uppercase text-zinc-500 block">Hari Berjaya</span>
+          <span id="maghribTotalWon" class="text-4xl font-extrabold text-emerald-400 mono">0</span>
+        </div>
+        <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4">
+          <span class="text-[10px] mono uppercase text-zinc-500 block">Status Kitaran</span>
+          <span id="maghribBadge" class="inline-block mt-2 px-2.5 py-1 text-[11px] mono font-bold rounded-full bg-zinc-900 text-zinc-400 border border-zinc-800">Menyemak...</span>
+        </div>
+      </div>
+
+      <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 space-y-3">
+        <div class="text-xs text-zinc-400">Sasaran Kunci: <span id="maghribTargetLabel" class="text-emerald-400 mono font-bold">-</span></div>
+        <textarea id="maghribNote" rows="2" placeholder="Catatan refleksi kitaran ini..." class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-xs mono text-zinc-200 focus:outline-none focus:border-zinc-500 resize-none"></textarea>
+        <button id="maghribLockBtn" onclick="lockMaghribCycle()" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 font-extrabold text-black rounded-xl text-xs uppercase mono shadow-lg shadow-emerald-950/40">Sahkan Berjaya</button>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex justify-between items-center text-[10px] mono uppercase text-zinc-500">
+          <span>Sejarah Kitaran</span>
+          <button onclick="loadMaghrib()" class="hover:text-zinc-300">Sync 🔄</button>
+        </div>
+        <div id="maghribHistory" class="space-y-1.5 max-h-60 overflow-y-auto pr-1 text-xs mono"></div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: MORNING PRIMER ==================== -->
+    <section id="tab-primer" class="tab-content hidden space-y-4">
+      <div class="p-3.5 bg-zinc-950 border border-zinc-900 rounded-2xl text-xs text-zinc-400 italic">
+        "Disiplin bermula saat kau buka mata: takluki tubuh sebelum dunia mula menuntut."
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4">
+          <span class="text-[10px] mono uppercase text-zinc-500 block">Streak Regangan</span>
+          <div class="flex items-baseline gap-1 mt-1">
+            <span id="primerStreak" class="text-4xl font-extrabold text-emerald-400 mono">0</span>
+            <span class="text-xs text-zinc-500">HARI</span>
+          </div>
+        </div>
+        <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4">
+          <span class="text-[10px] mono uppercase text-zinc-500 block">Status Pagi Ini</span>
+          <span id="primerBadge" class="inline-block mt-2 px-2.5 py-1 text-[11px] mono font-bold rounded-full bg-zinc-900 text-zinc-500 border border-zinc-800">PENDING</span>
+        </div>
+      </div>
+
+      <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 space-y-3">
+        <span class="text-[11px] mono uppercase text-zinc-500 block">Fokus Rutin Regangan</span>
+        <div class="grid grid-cols-3 gap-2 text-xs mono">
+          <button type="button" onclick="selectPrimerFocus(this, 'Spine & Back')" class="primer-btn p-2 rounded-lg border border-emerald-500 bg-zinc-900 text-emerald-400 font-bold">Spine/Back</button>
+          <button type="button" onclick="selectPrimerFocus(this, 'Hips & Legs')" class="primer-btn p-2 rounded-lg border border-zinc-800 bg-black text-zinc-400 font-bold">Hips/Legs</button>
+          <button type="button" onclick="selectPrimerFocus(this, 'Full Mobility')" class="primer-btn p-2 rounded-lg border border-zinc-800 bg-black text-zinc-400 font-bold">Full Body</button>
+        </div>
+        <input type="text" id="primerNote" placeholder="Catatan fizikal (cth: spine decompress, hamstring)..." class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 focus:outline-none focus:border-zinc-500 placeholder:text-zinc-700">
+        <button id="primerCommitBtn" onclick="commitPrimer()" class="w-full py-3.5 bg-zinc-100 hover:bg-white text-black font-extrabold rounded-xl text-xs uppercase mono">Commit Stretching Selesai</button>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex justify-between items-center text-[10px] mono uppercase text-zinc-500">
+          <span>Log Regangan Pagi</span>
+          <button onclick="loadPrimer()" class="hover:text-zinc-300">Sync 🔄</button>
+        </div>
+        <div id="primerHistory" class="space-y-1.5 max-h-56 overflow-y-auto pr-1 text-xs mono"></div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: WORKOUT LOG ==================== -->
+    <section id="tab-workout" class="tab-content hidden space-y-4">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4">
+          <span class="text-[10px] mono uppercase tracking-wider text-zinc-500 block">Total Workouts</span>
+          <div class="flex items-baseline gap-1 mt-1">
+            <span id="totalWorkouts" class="text-4xl font-extrabold tracking-tight text-zinc-100 mono">0</span>
+            <span class="text-xs text-zinc-500">SESI</span>
+          </div>
+        </div>
+        <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4">
+          <span class="text-[10px] mono uppercase tracking-wider text-zinc-500 block">Status Hari Ini</span>
+          <div class="mt-2">
+            <span id="todayWorkoutStatusBadge" class="text-[11px] mono font-bold px-2.5 py-1 rounded-full bg-zinc-900 text-zinc-500 border border-zinc-800">
+              REST / BELUM
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Freeform Universal Input -->
+      <section class="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-zinc-300 mono">Log Sesi Hari Ini</h2>
+          <span class="text-[10px] mono text-zinc-600">INPUT BEBAS</span>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[11px] mono uppercase text-zinc-500">Fokus / Tajuk Latihan</label>
+          <input type="text" id="workoutTitle" placeholder="Cth: Dumbbell Chest & Biceps / 5KM Larian Padang Polo"
+            class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-sm text-zinc-100 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500">
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[11px] mono uppercase text-zinc-500">Perincian / Catatan Sesi</label>
+          <textarea id="workoutDetails" rows="4" 
+            placeholder="Cth:&#10;- Incline DB Press 16kg (4x10)&#10;- Bicep Curls 12kg (3x12)&#10;- Lateral Raise 8kg (4x15)&#10;Teknik kemas, rehat 90s."
+            class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-xs mono text-zinc-200 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500 resize-none leading-relaxed"></textarea>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[11px] mono uppercase text-zinc-500">Tempoh (Minit - Pilihan)</label>
+          <input type="number" id="workoutDuration" placeholder="45"
+            class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-sm mono text-zinc-100 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500">
+        </div>
+
+        <button id="saveWorkoutBtn" onclick="submitWorkout()"
+          class="w-full py-4 bg-zinc-100 hover:bg-white active:scale-[0.98] transition font-extrabold text-black rounded-xl text-xs uppercase tracking-widest mono shadow-lg shadow-zinc-950">
+          Simpan Workout Selesai
+        </button>
+      </section>
+
+      <section class="space-y-2">
+        <div class="flex justify-between items-center text-xs uppercase tracking-wider mono text-zinc-500">
+          <span>Log Latihan Lepas</span>
+          <button onclick="loadWorkouts()" class="hover:text-zinc-300">Sync 🔄</button>
+        </div>
+        <div id="workoutList" class="space-y-2.5 max-h-72 overflow-y-auto pr-1 text-xs">
+          <p class="text-zinc-700 text-center py-4 mono">Memuat rekod latihan...</p>
+        </div>
+      </section>
+    </section>
+
+    <!-- ==================== TAB 4: DAILY MASTERY (MYSELF) ==================== -->
+    <section id="tab-mastery" class="tab-content hidden space-y-4">
+      <div class="p-3.5 bg-zinc-950 border border-zinc-900 rounded-2xl text-xs text-zinc-400 italic">
+        "Kemenangan besar dibina daripada kepatuhan harian terhadap perkara kecil. Kuasai hari ini, kau kuasai masa depan."
+      </div>
+
+      <!-- Tanda Kejayaan: 30-Day Completed Badges -->
+      <section id="badgesSection" class="hidden bg-zinc-950 border border-amber-500/30 rounded-2xl p-4 space-y-2">
+        <div class="flex justify-between items-center text-xs mono">
+          <span class="text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+            <span>🏆</span> FASA 30-HARI DITAKLUK
+          </span>
+          <span id="badgesTotalCount" class="text-zinc-400 font-bold">0 Selesai</span>
+        </div>
+        <div id="badgesContainer" class="flex flex-wrap gap-2 pt-1"></div>
+      </section>
+
+      <!-- Core Scoreboard: Momentum Kemenangan -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4">
+          <span class="text-[10px] mono uppercase tracking-wider text-zinc-500 block">Kitaran Fasa Semasa</span>
+          <div class="flex items-baseline gap-1 mt-1">
+            <span id="currentCycleDay" class="text-4xl font-extrabold tracking-tight text-emerald-400 mono">0</span>
+            <span class="text-xs text-zinc-500">/ 30 HARI</span>
+          </div>
+        </div>
+        <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4">
+          <span class="text-[10px] mono uppercase tracking-wider text-zinc-500 block">Total Days Won</span>
+          <div class="flex items-baseline gap-1 mt-1">
+            <span id="totalWon" class="text-4xl font-extrabold tracking-tight text-zinc-100 mono">0</span>
+            <span class="text-xs text-zinc-500">HARI</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Tracker (Target Fasa 30 Hari Kemenangan) -->
+      <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 space-y-2">
+        <div class="flex justify-between text-xs mono">
+          <span class="text-zinc-500 uppercase tracking-wider" id="phaseLabel">Fasa 1: Menuju 30 Hari</span>
+          <span id="phasePercent" class="text-emerald-400 font-bold">0%</span>
+        </div>
+        <div class="w-full h-2 bg-zinc-900 rounded-full overflow-hidden">
+          <div id="progressBar" class="h-full bg-emerald-500 transition-all duration-700" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Execution Panel -->
+      <section class="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-zinc-300 mono">Pengesahan Kemenangan</h2>
+          <span id="statusBadge" class="text-[10px] mono font-bold px-2 py-0.5 rounded bg-zinc-900 text-zinc-500 border border-zinc-800">
+            BELUM SAH
+          </span>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[11px] mono uppercase text-zinc-500">Kemenangan / Kemajuan Hari Ini:</label>
+          <textarea id="winInput" rows="2" 
+            placeholder="Cth: Selesai 2 bab Linear Algebra, konsisten solat tepat waktu, pacing larian maintain..."
+            class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-xs mono text-zinc-200 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500 resize-none"></textarea>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[11px] mono uppercase text-zinc-500">Mesej Kepada Diri Sendiri (Self-Talk):</label>
+          <input type="text" id="mentalInput" 
+            placeholder="Cth: Aku pegang kawalan ke atas fikiran aku hari ini. Tiada alasan."
+            class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500">
+        </div>
+
+        <button id="lockWinBtn" onclick="claimDailyWin()"
+          class="w-full py-4 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] transition font-extrabold text-black rounded-xl text-xs uppercase tracking-widest mono shadow-lg shadow-emerald-950/40">
+          ✓ Sahkan: Hari Ini Aku Menang
+        </button>
+      </section>
+
+      <!-- Sejarah Log Kemenangan -->
+      <section class="space-y-2">
+        <div class="flex justify-between items-center text-xs uppercase tracking-wider mono text-zinc-500">
+          <span>Log Rekod Kemenangan</span>
+          <button onclick="loadMasteryData()" class="hover:text-zinc-300">Sync 🔄</button>
+        </div>
+        <div id="masteryList" class="space-y-2 max-h-72 overflow-y-auto pr-1 text-xs mono">
+          <p class="text-zinc-700 text-center py-4">Memuat rekod kejayaan...</p>
+        </div>
+      </section>
+    </section>
+
+  </main>
+
+  <!-- ==================== FIXED BOTTOM NAVIGATION (4 TABS) ==================== -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-md border-t border-zinc-900 flex justify-around py-3 max-w-md mx-auto z-50">
+    <button onclick="switchTab('maghrib', 'MAGHRIB CYCLE', 'DISCIPLINE PROTOCOL', this)" class="nav-btn flex flex-col items-center gap-1 text-emerald-400 font-bold">
+      <span class="text-base">🌙</span>
+      <span class="text-[9px] mono uppercase tracking-wider">Maghrib</span>
+    </button>
+    <button onclick="switchTab('primer', 'MORNING PRIMER', 'PHYSICAL MOBILITY', this)" class="nav-btn flex flex-col items-center gap-1 text-zinc-500">
+      <span class="text-base">⚡</span>
+      <span class="text-[9px] mono uppercase tracking-wider">Primer</span>
+    </button>
+    <button onclick="switchTab('workout', 'WORKOUT LOG', 'PHYSICAL PROTOCOL', this)" class="nav-btn flex flex-col items-center gap-1 text-zinc-500">
+      <span class="text-base">🏋️</span>
+      <span class="text-[9px] mono uppercase tracking-wider">Workout</span>
+    </button>
+    <button onclick="switchTab('mastery', 'WIN THE DAY', 'MINDSET PROTOCOL', this)" class="nav-btn flex flex-col items-center gap-1 text-zinc-500">
+      <span class="text-base">🎯</span>
+      <span class="text-[9px] mono uppercase tracking-wider">Myself</span>
+    </button>
+  </nav>
+
+  <!-- ==================== CLIENT LOGIC SCRIPT ==================== -->
+  <script>
+    const SUPABASE_URL = "https://jrbbiqchqahyjhkxqmgr.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_5NR1DcL0YZ1Z5416-kX_2w_f8la6ycO";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function getTodayString() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    let todayStr = getTodayString();
+    document.getElementById('globalDate').innerText = todayStr;
+
+    // Auto-check midnight rollover
+    setInterval(() => {
+      const c = getTodayString();
+      if (c !== todayStr) {
+        todayStr = c;
+        document.getElementById('globalDate').innerText = todayStr;
+        loadAllModules();
+      }
+    }, 15000);
+
+    // --- TAB SWITCHER ---
+    function switchTab(tabId, title, subLabel, btnEl) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      document.getElementById('moduleTitle').innerText = title;
+      document.getElementById('subHeaderLabel').innerText = subLabel;
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-emerald-400', 'font-bold');
+        btn.classList.add('text-zinc-500');
+      });
+      btnEl.classList.add('text-emerald-400', 'font-bold');
+      btnEl.classList.remove('text-zinc-500');
+    }
+
+    // ==================== 1. MAGHRIB LOGIC ====================
+    let maghribNextLock = null;
+
+    function getLatestEligibleMaghrib() {
+      const now = new Date();
+      const todayMaghrib = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 19, 30, 0);
+      if (now < todayMaghrib) {
+        const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        const yyyy = y.getFullYear();
+        const mm = String(y.getMonth() + 1).padStart(2, '0');
+        const dd = String(y.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      }
+      return todayStr;
+    }
+
+    async function loadMaghrib() {
+      const { data } = await db.from('maghrib').select('*').order('cycle_date', { ascending: true });
+      const logs = data || [];
+      const totalWon = logs.filter(l => l.completed).length;
+      document.getElementById('maghribTotalWon').innerText = totalWon;
+
+      let lastDate = "2026-08-30";
+      if (logs.length > 0) lastDate = logs[logs.length - 1].cycle_date;
+
+      const eligible = getLatestEligibleMaghrib();
+      const [y, m, d] = lastDate.split('-').map(Number);
+      const nextDateObj = new Date(y, m - 1, d + 1);
+      const nextY = nextDateObj.getFullYear();
+      const nextM = String(nextDateObj.getMonth() + 1).padStart(2, '0');
+      const nextD = String(nextDateObj.getDate()).padStart(2, '0');
+      maghribNextLock = `${nextY}-${nextM}-${nextD}`;
+
+      const btn = document.getElementById('maghribLockBtn');
+      const badge = document.getElementById('maghribBadge');
+      const targetLbl = document.getElementById('maghribTargetLabel');
+
+      if (lastDate >= eligible) {
+        targetLbl.innerText = "Semua Selesai";
+        badge.innerText = "UP-TO-DATE";
+        badge.className = "inline-block mt-2 px-2.5 py-1 text-[11px] mono font-bold rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800";
+        btn.disabled = true;
+        btn.innerText = "Tunggu Maghrib Seterusnya (7:30 PM)";
+        btn.className = "w-full py-3.5 bg-zinc-900 text-zinc-600 rounded-xl text-xs uppercase mono cursor-not-allowed";
+      } else {
+        targetLbl.innerText = maghribNextLock;
+        badge.innerText = "TERTUNGGAK";
+        badge.className = "inline-block mt-2 px-2.5 py-1 text-[11px] mono font-bold rounded-full bg-amber-950/60 text-amber-400 border border-amber-800";
+        btn.disabled = false;
+        btn.innerText = `Kunci Hari ${maghribNextLock}`;
+        btn.className = "w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-xl text-xs uppercase mono";
+      }
+
+      document.getElementById('maghribHistory').innerHTML = logs.slice(-10).reverse().map(l => `
+        <div class="flex justify-between p-2 rounded-lg bg-zinc-950 border border-zinc-900">
+          <span>${l.cycle_date}</span>
+          <span class="text-emerald-400 font-bold">${l.completed ? 'BERJAYA' : 'TERTINGGAL'}</span>
+        </div>
+      `).join('');
+    }
+
+    async function lockMaghribCycle() {
+      if (!maghribNextLock) return;
+      const note = document.getElementById('maghribNote').value.trim();
+      await db.from('maghrib').upsert({ cycle_date: maghribNextLock, completed: true, notes: note || 'Kitaran berjaya' }, { onConflict: 'cycle_date' });
+      document.getElementById('maghribNote').value = "";
+      loadMaghrib();
+    }
+
+    // ==================== 2. MORNING PRIMER LOGIC ====================
+    let primerFocus = "Spine & Back";
+    function selectPrimerFocus(el, val) {
+      primerFocus = val;
+      document.querySelectorAll('.primer-btn').forEach(b => b.className = "primer-btn p-2 rounded-lg border border-zinc-800 bg-black text-zinc-400 font-bold");
+      el.className = "primer-btn p-2 rounded-lg border border-emerald-500 bg-zinc-900 text-emerald-400 font-bold";
+    }
+
+    async function loadPrimer() {
+      const { data } = await db.from('morning_stretching').select('*').order('stretch_date', { ascending: false });
+      const logs = data || [];
+      const isDone = logs.some(l => l.stretch_date === todayStr);
+
+      const badge = document.getElementById('primerBadge');
+      const btn = document.getElementById('primerCommitBtn');
+      if (isDone) {
+        badge.innerText = "COMPLETED ✓";
+        badge.className = "inline-block mt-2 px-2.5 py-1 text-[11px] mono font-bold rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800";
+        btn.disabled = true;
+        btn.innerText = "Selesai Untuk Hari Ini";
+        btn.className = "w-full py-3.5 bg-zinc-900 text-zinc-600 rounded-xl text-xs uppercase mono cursor-not-allowed";
+      } else {
+        badge.innerText = "PENDING";
+        badge.className = "inline-block mt-2 px-2.5 py-1 text-[11px] mono font-bold rounded-full bg-amber-950/60 text-amber-400 border border-amber-800";
+        btn.disabled = false;
+        btn.innerText = "Commit Stretching Selesai";
+        btn.className = "w-full py-3.5 bg-zinc-100 hover:bg-white text-black font-extrabold rounded-xl text-xs uppercase mono";
+      }
+
+      let streak = 0;
+      let check = new Date();
+      check.setHours(0,0,0,0);
+      if (!isDone) check.setDate(check.getDate() - 1);
+      while(true) {
+        const dStr = `${check.getFullYear()}-${String(check.getMonth()+1).padStart(2,'0')}-${String(check.getDate()).padStart(2,'0')}`;
+        if (logs.find(l => l.stretch_date === dStr)) { streak++; check.setDate(check.getDate() - 1); }
+        else break;
+      }
+      document.getElementById('primerStreak').innerText = streak;
+
+      document.getElementById('primerHistory').innerHTML = logs.slice(0, 7).map(l => `
+        <div class="flex justify-between p-2 rounded-lg bg-zinc-950 border border-zinc-900">
+          <span>${l.stretch_date} [${l.intensity_focus || 'Routine'}]</span>
+          <span class="text-emerald-400 font-bold">DONE</span>
+        </div>
+      `).join('');
+    }
+
+    async function commitPrimer() {
+      const note = document.getElementById('primerNote').value.trim();
+      await db.from('morning_stretching').upsert({ stretch_date: todayStr, completed: true, intensity_focus: primerFocus, mental_note: note || 'Mobiliti selesai.' }, { onConflict: 'stretch_date' });
+      document.getElementById('primerNote').value = "";
+      loadPrimer();
+    }
+
+    // ==================== 3. WORKOUT LOGIC ====================
+    async function loadWorkouts() {
+      const { data, error } = await db
+        .from('workout_logs')
+        .select('*')
+        .order('workout_date', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      const logs = data || [];
+      document.getElementById('totalWorkouts').innerText = logs.length;
+
+      const isTodayDone = logs.some(l => l.workout_date === todayStr);
+      const statusBadge = document.getElementById('todayWorkoutStatusBadge');
+
+      if (isTodayDone) {
+        statusBadge.innerText = "DONE (EXECUTED)";
+        statusBadge.className = "text-[11px] mono font-bold px-2.5 py-1 rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800";
+      } else {
+        statusBadge.innerText = "REST / BELUM";
+        statusBadge.className = "text-[11px] mono font-bold px-2.5 py-1 rounded-full bg-zinc-900 text-zinc-500 border border-zinc-800";
+      }
+
+      const listEl = document.getElementById('workoutList');
+      if (logs.length === 0) {
+        listEl.innerHTML = `<p class="text-zinc-700 text-center py-4 mono">Belum ada latihan direkodkan.</p>`;
+        return;
+      }
+
+      listEl.innerHTML = logs.map(item => `
+        <div class="p-3.5 bg-zinc-950 border border-zinc-900 rounded-xl space-y-2">
+          <div class="flex justify-between items-baseline border-b border-zinc-900/80 pb-1.5">
+            <span class="font-extrabold text-zinc-200 text-sm tracking-tight">${item.workout_title}</span>
+            <div class="text-[10px] mono text-zinc-500 flex items-center gap-2">
+              ${item.duration_minutes ? `<span>${item.duration_minutes}m</span>` : ''}
+              <span>${item.workout_date}</span>
+            </div>
+          </div>
+          <div class="text-zinc-400 mono text-xs whitespace-pre-line leading-relaxed">${item.workout_details}</div>
+        </div>
+      `).join('');
+    }
+
+    async function submitWorkout() {
+      const titleInput = document.getElementById('workoutTitle');
+      const detailsInput = document.getElementById('workoutDetails');
+      const durationInput = document.getElementById('workoutDuration');
+      const btn = document.getElementById('saveWorkoutBtn');
+
+      const title = titleInput.value.trim();
+      const details = detailsInput.value.trim();
+      const duration = parseInt(durationInput.value) || 0;
+
+      if (!title || !details) {
+        alert("Sila masukkan tajuk latihan dan sedikit perincian sesi.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "Saving Execution...";
+
+      const { error } = await db
+        .from('workout_logs')
+        .insert([{
+          workout_title: title,
+          workout_details: details,
+          duration_minutes: duration,
+          workout_date: todayStr
+        }]);
+
+      if (error) {
+        alert("Ralat simpan: " + error.message);
+        btn.disabled = false;
+        btn.innerText = "Simpan Workout Selesai";
+      } else {
+        titleInput.value = "";
+        detailsInput.value = "";
+        durationInput.value = "";
+        btn.disabled = false;
+        btn.innerText = "Simpan Workout Selesai";
+        await loadWorkouts();
+      }
+    }
+
+    // ==================== 4. DAILY MASTERY (MYSELF) LOGIC ====================
+    async function loadMasteryData() {
+      const { data, error } = await db
+        .from('daily_mastery')
+        .select('*')
+        .order('mastery_date', { ascending: false });
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      const logs = data || [];
+      const totalWins = logs.filter(l => l.win_status).length;
+      document.getElementById('totalWon').innerText = totalWins;
+
+      const todayRecord = logs.find(l => l.mastery_date === todayStr);
+      const statusBadge = document.getElementById('statusBadge');
+      const winBtn = document.getElementById('lockWinBtn');
+
+      if (todayRecord && todayRecord.win_status) {
+        statusBadge.innerText = "HARI INI DITAKLUKI ✓";
+        statusBadge.className = "text-[10px] mono font-bold px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800";
+        winBtn.disabled = true;
+        winBtn.innerText = "Hari Ini Berjaya Ditutup";
+        winBtn.className = "w-full py-4 bg-zinc-900 text-zinc-600 rounded-xl text-xs uppercase tracking-widest mono cursor-not-allowed";
+      } else {
+        statusBadge.innerText = "BELUM SAH";
+        statusBadge.className = "text-[10px] mono font-bold px-2 py-0.5 rounded bg-amber-950/60 text-amber-400 border border-amber-800";
+        winBtn.disabled = false;
+        winBtn.innerText = "✓ Sahkan: Hari Ini Aku Menang";
+        winBtn.className = "w-full py-4 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] transition font-extrabold text-black rounded-xl text-xs uppercase tracking-widest mono shadow-lg shadow-emerald-950/40";
+      }
+
+      let streak = 0;
+      let checkDate = new Date();
+      checkDate.setHours(0, 0, 0, 0);
+
+      if (!todayRecord) {
+        checkDate.setDate(checkDate.getDate() - 1);
+      }
+
+      while (true) {
+        const yyyy = checkDate.getFullYear();
+        const mm = String(checkDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(checkDate.getDate()).padStart(2, '0');
+        const dStr = `${yyyy}-${mm}-${dd}`;
+
+        const found = logs.find(l => l.mastery_date === dStr && l.win_status);
+        if (found) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+
+      const completedPhases = Math.floor(streak / 30);
+      const cycleDay = (streak % 30 === 0 && streak > 0) ? 30 : (streak % 30);
+      const currentPhaseNumber = completedPhases + 1;
+
+      document.getElementById('currentCycleDay').innerText = cycleDay;
+      document.getElementById('phaseLabel').innerText = `Fasa ${currentPhaseNumber}: Hari ${cycleDay}/30`;
+
+      const pct = Math.round((cycleDay / 30) * 100);
+      document.getElementById('phasePercent').innerText = `${pct}%`;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+
+      const badgesSection = document.getElementById('badgesSection');
+      const badgesContainer = document.getElementById('badgesContainer');
+      const badgesCountText = document.getElementById('badgesTotalCount');
+
+      if (completedPhases > 0) {
+        badgesSection.classList.remove('hidden');
+        badgesCountText.innerText = `${completedPhases} Fasa (${completedPhases * 30} Hari)`;
+        
+        let badgesHtml = '';
+        for (let i = 1; i <= completedPhases; i++) {
+          badgesHtml += `
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-amber-500/40 text-amber-300 font-bold text-xs mono">
+              <span>★</span> Fasa ${i} (30 Hari) Ditakluk
+            </div>
+          `;
+        }
+        badgesContainer.innerHTML = badgesHtml;
+      } else {
+        badgesSection.classList.add('hidden');
+      }
+
+      const listContainer = document.getElementById('masteryList');
+      if (logs.length === 0) {
+        listContainer.innerHTML = `<p class="text-zinc-700 text-center py-4">Belum ada hari yang direkodkan. Mulakan hari pertama.</p>`;
+        return;
+      }
+
+      listContainer.innerHTML = logs.map(item => `
+        <div class="p-3 bg-zinc-950 border border-zinc-900 rounded-xl space-y-1.5">
+          <div class="flex justify-between items-baseline border-b border-zinc-900/60 pb-1.5">
+            <span class="text-zinc-300 font-bold">${item.mastery_date}</span>
+            <span class="text-emerald-400 font-extrabold text-[10px]">DAY WON ✓</span>
+          </div>
+          <p class="text-zinc-200 text-xs">${item.daily_win}</p>
+          ${item.mental_statement ? `<p class="text-zinc-500 text-[11px] italic">"${item.mental_statement}"</p>` : ''}
+        </div>
+      `).join('');
+    }
+
+    async function claimDailyWin() {
+      const winText = document.getElementById('winInput').value.trim();
+      const mentalText = document.getElementById('mentalInput').value.trim();
+      const btn = document.getElementById('lockWinBtn');
+
+      if (!winText) {
+        alert("Tulis sekurang-kurangnya satu kemajuan atau kemenangan hari ini sebelum mengunci.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "Claiming Victory...";
+
+      const { error } = await db
+        .from('daily_mastery')
+        .upsert({
+          mastery_date: todayStr,
+          win_status: true,
+          daily_win: winText,
+          mental_statement: mentalText || 'Aku berdisiplin dan fokus pada proses.'
+        }, { onConflict: 'mastery_date' });
+
+      if (error) {
+        alert("Ralat simpan: " + error.message);
+        btn.disabled = false;
+        btn.innerText = "✓ Sahkan: Hari Ini Aku Menang";
+      } else {
+        document.getElementById('winInput').value = "";
+        document.getElementById('mentalInput').value = "";
+        await loadMasteryData();
+      }
+    }
+
+    // ==================== LOAD ALL MODULES ====================
+    function loadAllModules() {
+      loadMaghrib();
+      loadPrimer();
+      loadWorkouts();
+      loadMasteryData();
+    }
+
+    loadAllModules();
+  </script>
+</body>
+</html>
