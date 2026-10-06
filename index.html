@@ -60,7 +60,7 @@
         </div>
       </div>
 
-      <!-- Progress Bar Fasa Maghrib (Kitaran 30 Hari) -->
+      <!-- Progress Bar Fasa Maghrib -->
       <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 space-y-2">
         <div class="flex justify-between text-xs mono">
           <span class="text-zinc-500 uppercase tracking-wider" id="maghribPhaseLabel">Fasa 1: Hari 0/30</span>
@@ -81,7 +81,7 @@
         <button id="maghribLockBtn" onclick="lockMaghribCycle()" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 font-extrabold text-black rounded-xl text-xs uppercase mono shadow-lg shadow-emerald-950/40">Sahkan Berjaya</button>
       </div>
 
-      <!-- Sejarah Rekod -->
+      <!-- Sejarah Rekod (Dengan Ayat Catatan Log) -->
       <div class="space-y-2">
         <div class="flex justify-between items-center text-[10px] mono uppercase text-zinc-500">
           <span>Sejarah Kitaran</span>
@@ -119,7 +119,12 @@
           <button type="button" onclick="selectPrimerFocus(this, 'Full Mobility')" class="primer-btn p-2 rounded-lg border border-zinc-800 bg-black text-zinc-400 font-bold">Full Body</button>
         </div>
         <input type="text" id="primerNote" placeholder="Catatan fizikal (cth: spine decompress, hamstring)..." class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 focus:outline-none focus:border-zinc-500 placeholder:text-zinc-700">
-        <button id="primerCommitBtn" onclick="commitPrimer()" class="w-full py-3.5 bg-zinc-100 hover:bg-white text-black font-extrabold rounded-xl text-xs uppercase mono">Commit Stretching Selesai</button>
+        
+        <!-- Pilihan Buat Selesai vs Tak Buat -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button id="primerCommitBtn" onclick="commitPrimer(true)" class="w-full py-3 bg-zinc-100 hover:bg-white text-black font-extrabold rounded-xl text-xs uppercase mono">Commit Selesai ✓</button>
+          <button id="primerSkipBtn" onclick="commitPrimer(false)" class="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-rose-400 font-bold rounded-xl text-xs uppercase mono">Tak Buat (Skip) ✕</button>
+        </div>
       </div>
 
       <div class="space-y-2">
@@ -151,7 +156,7 @@
         </div>
       </div>
 
-      <section class="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 space-y-4">
+      <section class="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 space-y-3.5">
         <div class="flex justify-between items-center">
           <h2 class="text-xs font-bold uppercase tracking-wider text-zinc-300 mono">Log Sesi Hari Ini</h2>
           <span class="text-[10px] mono text-zinc-600">INPUT BEBAS</span>
@@ -165,8 +170,8 @@
 
         <div class="space-y-1">
           <label class="text-[11px] mono uppercase text-zinc-500">Perincian / Catatan Sesi</label>
-          <textarea id="workoutDetails" rows="4" 
-            placeholder="Cth:&#10;- Incline DB Press 16kg (4x10)&#10;- Bicep Curls 12kg (3x12)&#10;- Lateral Raise 8kg (4x15)&#10;Teknik kemas, rehat 90s."
+          <textarea id="workoutDetails" rows="3" 
+            placeholder="Cth:&#10;- Incline DB Press 16kg (4x10)&#10;- Bicep Curls 12kg (3x12)"
             class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-xs mono text-zinc-200 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500 resize-none leading-relaxed"></textarea>
         </div>
 
@@ -176,10 +181,17 @@
             class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-sm mono text-zinc-100 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500">
         </div>
 
-        <button id="saveWorkoutBtn" onclick="submitWorkout()"
-          class="w-full py-4 bg-zinc-100 hover:bg-white active:scale-[0.98] transition font-extrabold text-black rounded-xl text-xs uppercase tracking-widest mono shadow-lg shadow-zinc-950">
-          Simpan Workout Selesai
-        </button>
+        <!-- Pilihan Simpan Workout vs Rest / Tak Buat -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button id="saveWorkoutBtn" onclick="submitWorkout(true)"
+            class="w-full py-3.5 bg-zinc-100 hover:bg-white text-black font-extrabold rounded-xl text-xs uppercase mono shadow-lg shadow-zinc-950">
+            Simpan Workout ✓
+          </button>
+          <button onclick="submitWorkout(false)"
+            class="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white font-bold rounded-xl text-xs uppercase mono">
+            Rest / Tak Buat Harini
+          </button>
+        </div>
       </section>
 
       <section class="space-y-2">
@@ -337,7 +349,7 @@
       btnEl.classList.remove('text-zinc-500');
     }
 
-    // ==================== 1. MAGHRIB LOGIC (DENGAN KITARAN FASA 30-HARI) ====================
+    // ==================== 1. MAGHRIB LOGIC ====================
     let maghribNextLock = null;
 
     function getLatestEligibleMaghrib() {
@@ -359,8 +371,6 @@
       const totalWon = logs.filter(l => l.completed).length;
       document.getElementById('maghribTotalWon').innerText = totalWon;
 
-      // Pengiraan Fasa 30 Hari:
-      // cth totalWon = 32 -> completedPhases = 1 (Fasa 1 habis), currentPhase = 2, cycleDay = 2/30
       const completedPhases = Math.floor(totalWon / 30);
       const cycleDay = (totalWon % 30 === 0 && totalWon > 0) ? 30 : (totalWon % 30);
       const currentPhaseNumber = completedPhases + 1;
@@ -372,7 +382,6 @@
       document.getElementById('maghribPhasePercent').innerText = `${pct}%`;
       document.getElementById('maghribProgressBar').style.width = `${pct}%`;
 
-      // Papar Badges Fasa Maghrib
       const badgesSection = document.getElementById('maghribBadgesSection');
       const badgesContainer = document.getElementById('maghribBadgesContainer');
       const badgesCountText = document.getElementById('maghribBadgesCount');
@@ -425,10 +434,16 @@
         btn.className = "w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-xl text-xs uppercase mono";
       }
 
+      // Log sejarah Maghrib memaparkan ayat/catatan refleksi
       document.getElementById('maghribHistory').innerHTML = logs.slice(-10).reverse().map(l => `
-        <div class="flex justify-between p-2 rounded-lg bg-zinc-950 border border-zinc-900">
-          <span>${l.cycle_date}</span>
-          <span class="text-emerald-400 font-bold">${l.completed ? 'BERJAYA' : 'TERTINGGAL'}</span>
+        <div class="p-2.5 rounded-lg bg-zinc-950 border border-zinc-900 space-y-1">
+          <div class="flex justify-between items-baseline border-b border-zinc-900/60 pb-1">
+            <span class="font-bold text-zinc-300">${l.cycle_date}</span>
+            <span class="${l.completed ? 'text-emerald-400' : 'text-rose-400'} font-bold text-[10px]">${l.completed ? 'BERJAYA ✓' : 'TERTINGGAL'}</span>
+          </div>
+          <div class="text-zinc-400 text-xs italic">
+            "${l.notes || 'Kitaran berjaya ditakluk.'}"
+          </div>
         </div>
       `).join('');
     }
@@ -436,7 +451,11 @@
     async function lockMaghribCycle() {
       if (!maghribNextLock) return;
       const note = document.getElementById('maghribNote').value.trim();
-      await db.from('maghrib').upsert({ cycle_date: maghribNextLock, completed: true, notes: note || 'Kitaran berjaya' }, { onConflict: 'cycle_date' });
+      await db.from('maghrib').upsert({
+        cycle_date: maghribNextLock,
+        completed: true,
+        notes: note || 'Kitaran berjaya ditakluk.'
+      }, { onConflict: 'cycle_date' });
       document.getElementById('maghribNote').value = "";
       loadMaghrib();
     }
@@ -452,46 +471,64 @@
     async function loadPrimer() {
       const { data } = await db.from('morning_stretching').select('*').order('stretch_date', { ascending: false });
       const logs = data || [];
-      const isDone = logs.some(l => l.stretch_date === todayStr);
+      const todayRecord = logs.find(l => l.stretch_date === todayStr);
 
       const badge = document.getElementById('primerBadge');
       const btn = document.getElementById('primerCommitBtn');
-      if (isDone) {
-        badge.innerText = "COMPLETED ✓";
-        badge.className = "inline-block mt-2 px-2.5 py-1 text-[11px] mono font-bold rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800";
+      const skipBtn = document.getElementById('primerSkipBtn');
+
+      if (todayRecord) {
+        if (todayRecord.completed) {
+          badge.innerText = "COMPLETED ✓";
+          badge.className = "inline-block mt-2 px-2.5 py-1 text-[11px] mono font-bold rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800";
+        } else {
+          badge.innerText = "SKIPPED ✕";
+          badge.className = "inline-block mt-2 px-2.5 py-1 text-[11px] mono font-bold rounded-full bg-rose-950/60 text-rose-400 border border-rose-800";
+        }
         btn.disabled = true;
-        btn.innerText = "Selesai Untuk Hari Ini";
-        btn.className = "w-full py-3.5 bg-zinc-900 text-zinc-600 rounded-xl text-xs uppercase mono cursor-not-allowed";
+        skipBtn.disabled = true;
+        btn.className = "w-full py-3 bg-zinc-900 text-zinc-600 rounded-xl text-xs uppercase mono cursor-not-allowed";
+        skipBtn.className = "w-full py-3 bg-zinc-900 text-zinc-600 rounded-xl text-xs uppercase mono cursor-not-allowed";
       } else {
         badge.innerText = "PENDING";
         badge.className = "inline-block mt-2 px-2.5 py-1 text-[11px] mono font-bold rounded-full bg-amber-950/60 text-amber-400 border border-amber-800";
         btn.disabled = false;
-        btn.innerText = "Commit Stretching Selesai";
-        btn.className = "w-full py-3.5 bg-zinc-100 hover:bg-white text-black font-extrabold rounded-xl text-xs uppercase mono";
+        skipBtn.disabled = false;
+        btn.className = "w-full py-3 bg-zinc-100 hover:bg-white text-black font-extrabold rounded-xl text-xs uppercase mono";
+        skipBtn.className = "w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-rose-400 font-bold rounded-xl text-xs uppercase mono";
       }
 
       let streak = 0;
       let check = new Date();
       check.setHours(0,0,0,0);
-      if (!isDone) check.setDate(check.getDate() - 1);
+      if (!todayRecord || !todayRecord.completed) check.setDate(check.getDate() - 1);
       while(true) {
         const dStr = `${check.getFullYear()}-${String(check.getMonth()+1).padStart(2,'0')}-${String(check.getDate()).padStart(2,'0')}`;
-        if (logs.find(l => l.stretch_date === dStr)) { streak++; check.setDate(check.getDate() - 1); }
+        const found = logs.find(l => l.stretch_date === dStr && l.completed);
+        if (found) { streak++; check.setDate(check.getDate() - 1); }
         else break;
       }
       document.getElementById('primerStreak').innerText = streak;
 
       document.getElementById('primerHistory').innerHTML = logs.slice(0, 7).map(l => `
-        <div class="flex justify-between p-2 rounded-lg bg-zinc-950 border border-zinc-900">
-          <span>${l.stretch_date} [${l.intensity_focus || 'Routine'}]</span>
-          <span class="text-emerald-400 font-bold">DONE</span>
+        <div class="flex justify-between items-center p-2 rounded-lg bg-zinc-950 border border-zinc-900">
+          <div>
+            <span class="text-zinc-300 font-bold">${l.stretch_date}</span>
+            <span class="text-zinc-500 text-[10px] ml-1">[${l.intensity_focus || 'Routine'}]</span>
+          </div>
+          <span class="${l.completed ? 'text-emerald-400' : 'text-rose-400'} font-bold">${l.completed ? 'DONE ✓' : 'SKIPPED ✕'}</span>
         </div>
       `).join('');
     }
 
-    async function commitPrimer() {
+    async function commitPrimer(isDone) {
       const note = document.getElementById('primerNote').value.trim();
-      await db.from('morning_stretching').upsert({ stretch_date: todayStr, completed: true, intensity_focus: primerFocus, mental_note: note || 'Mobiliti selesai.' }, { onConflict: 'stretch_date' });
+      await db.from('morning_stretching').upsert({
+        stretch_date: todayStr,
+        completed: isDone,
+        intensity_focus: isDone ? primerFocus : 'Rest / Tak Buat',
+        mental_note: note || (isDone ? 'Mobiliti selesai.' : 'Hari ini rehat/skip stretching.')
+      }, { onConflict: 'stretch_date' });
       document.getElementById('primerNote').value = "";
       loadPrimer();
     }
@@ -510,14 +547,20 @@
       }
 
       const logs = data || [];
-      document.getElementById('totalWorkouts').innerText = logs.length;
+      const actualWorkouts = logs.filter(l => !l.workout_title.includes('(REST DAY)')).length;
+      document.getElementById('totalWorkouts').innerText = actualWorkouts;
 
-      const isTodayDone = logs.some(l => l.workout_date === todayStr);
+      const todayLog = logs.find(l => l.workout_date === todayStr);
       const statusBadge = document.getElementById('todayWorkoutStatusBadge');
 
-      if (isTodayDone) {
-        statusBadge.innerText = "DONE (EXECUTED)";
-        statusBadge.className = "text-[11px] mono font-bold px-2.5 py-1 rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800";
+      if (todayLog) {
+        if (todayLog.workout_title.includes('(REST DAY)')) {
+          statusBadge.innerText = "REST DAY (SELESAI)";
+          statusBadge.className = "text-[11px] mono font-bold px-2.5 py-1 rounded-full bg-zinc-900 text-amber-400 border border-amber-800";
+        } else {
+          statusBadge.innerText = "DONE (EXECUTED)";
+          statusBadge.className = "text-[11px] mono font-bold px-2.5 py-1 rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800";
+        }
       } else {
         statusBadge.innerText = "REST / BELUM";
         statusBadge.className = "text-[11px] mono font-bold px-2.5 py-1 rounded-full bg-zinc-900 text-zinc-500 border border-zinc-800";
@@ -532,7 +575,7 @@
       listEl.innerHTML = logs.map(item => `
         <div class="p-3.5 bg-zinc-950 border border-zinc-900 rounded-xl space-y-2">
           <div class="flex justify-between items-baseline border-b border-zinc-900/80 pb-1.5">
-            <span class="font-extrabold text-zinc-200 text-sm tracking-tight">${item.workout_title}</span>
+            <span class="font-extrabold ${item.workout_title.includes('(REST DAY)') ? 'text-amber-400' : 'text-zinc-200'} text-sm tracking-tight">${item.workout_title}</span>
             <div class="text-[10px] mono text-zinc-500 flex items-center gap-2">
               ${item.duration_minutes ? `<span>${item.duration_minutes}m</span>` : ''}
               <span>${item.workout_date}</span>
@@ -543,23 +586,26 @@
       `).join('');
     }
 
-    async function submitWorkout() {
+    async function submitWorkout(isWorkout) {
       const titleInput = document.getElementById('workoutTitle');
       const detailsInput = document.getElementById('workoutDetails');
       const durationInput = document.getElementById('workoutDuration');
       const btn = document.getElementById('saveWorkoutBtn');
 
-      const title = titleInput.value.trim();
-      const details = detailsInput.value.trim();
-      const duration = parseInt(durationInput.value) || 0;
+      let title = titleInput.value.trim();
+      let details = detailsInput.value.trim();
+      let duration = parseInt(durationInput.value) || 0;
 
-      if (!title || !details) {
-        alert("Sila masukkan tajuk latihan dan sedikit perincian sesi.");
+      if (!isWorkout) {
+        title = "Hari Ini Rehat (REST DAY)";
+        details = details || "Rehat penuh untuk pemulihan otot dan tenaga harian.";
+        duration = 0;
+      } else if (!title || !details) {
+        alert("Sila masukkan tajuk latihan dan butiran sesi.");
         return;
       }
 
       btn.disabled = true;
-      btn.innerText = "Saving Execution...";
 
       const { error } = await db
         .from('workout_logs')
@@ -572,16 +618,13 @@
 
       if (error) {
         alert("Ralat simpan: " + error.message);
-        btn.disabled = false;
-        btn.innerText = "Simpan Workout Selesai";
       } else {
         titleInput.value = "";
         detailsInput.value = "";
         durationInput.value = "";
-        btn.disabled = false;
-        btn.innerText = "Simpan Workout Selesai";
         await loadWorkouts();
       }
+      btn.disabled = false;
     }
 
     // ==================== 4. DAILY MASTERY (MYSELF) LOGIC ====================
