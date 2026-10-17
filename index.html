@@ -81,7 +81,7 @@
         <button id="maghribLockBtn" onclick="lockMaghribCycle()" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 font-extrabold text-black rounded-xl text-xs uppercase mono shadow-lg shadow-emerald-950/40">Sahkan Berjaya</button>
       </div>
 
-      <!-- Sejarah Rekod (ALL Past Records - Tiada Had 10 Sahaja) -->
+      <!-- Sejarah Rekod (ALL Past Records) -->
       <div class="space-y-2">
         <div class="flex justify-between items-center text-[10px] mono uppercase text-zinc-500">
           <span>Semua Sejarah Kitaran (All Record)</span>
@@ -135,7 +135,7 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 3: WORKOUT LOG ==================== -->
+    <!-- ==================== TAB 3: WORKOUT LOG (SEHARI SEKALI) ==================== -->
     <section id="tab-workout" class="tab-content hidden space-y-4">
       <div class="grid grid-cols-2 gap-3">
         <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4">
@@ -158,36 +158,44 @@
       <section class="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 space-y-3.5">
         <div class="flex justify-between items-center">
           <h2 class="text-xs font-bold uppercase tracking-wider text-zinc-300 mono">Log Sesi Hari Ini</h2>
-          <span class="text-[10px] mono text-zinc-600">INPUT BEBAS</span>
+          <span id="workoutLimitBadge" class="text-[10px] mono text-zinc-500">1 SESI / HARI</span>
         </div>
 
         <div class="space-y-1">
           <label class="text-[11px] mono uppercase text-zinc-500">Fokus / Tajuk Latihan</label>
           <input type="text" id="workoutTitle" placeholder="Cth: Dumbbell Chest & Biceps / 5KM Larian Padang Polo"
-            class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-sm text-zinc-100 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500">
+            class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-sm text-zinc-100 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500 disabled:opacity-50 disabled:cursor-not-allowed">
         </div>
 
         <div class="space-y-1">
           <label class="text-[11px] mono uppercase text-zinc-500">Perincian / Catatan Sesi</label>
           <textarea id="workoutDetails" rows="3" 
             placeholder="Cth:&#10;- Incline DB Press 16kg (4x10)&#10;- Bicep Curls 12kg (3x12)"
-            class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-xs mono text-zinc-200 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500 resize-none leading-relaxed"></textarea>
+            class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-xs mono text-zinc-200 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500 resize-none leading-relaxed disabled:opacity-50 disabled:cursor-not-allowed"></textarea>
         </div>
 
         <div class="space-y-1">
           <label class="text-[11px] mono uppercase text-zinc-500">Tempoh (Minit - Pilihan)</label>
           <input type="number" id="workoutDuration" placeholder="45"
-            class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-sm mono text-zinc-100 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500">
+            class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-sm mono text-zinc-100 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500 disabled:opacity-50 disabled:cursor-not-allowed">
         </div>
 
-        <div class="grid grid-cols-2 gap-2 pt-1">
+        <div id="workoutActionButtons" class="grid grid-cols-2 gap-2 pt-1">
           <button id="saveWorkoutBtn" onclick="submitWorkout(true)"
             class="w-full py-3.5 bg-zinc-100 hover:bg-white text-black font-extrabold rounded-xl text-xs uppercase mono shadow-lg shadow-zinc-950">
             Simpan Workout ✓
           </button>
-          <button onclick="submitWorkout(false)"
+          <button id="skipWorkoutBtn" onclick="submitWorkout(false)"
             class="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white font-bold rounded-xl text-xs uppercase mono">
             Rest / Tak Buat Harini
+          </button>
+        </div>
+
+        <!-- Butang Kemaskini jika sudah lock hari ini -->
+        <div id="workoutEditContainer" class="hidden pt-1">
+          <button onclick="enableWorkoutEditing()"
+            class="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-zinc-200 font-bold rounded-xl text-xs uppercase mono transition">
+            ✎ Kemaskini / Edit Rekod Hari Ini
           </button>
         </div>
       </section>
@@ -432,7 +440,6 @@
         btn.className = "w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-xl text-xs uppercase mono";
       }
 
-      // Paparkan KESEMUA rekod sejarah Maghrib (disusun dari terkini ke paling awal)
       const historyContainer = document.getElementById('maghribHistory');
       if (logs.length === 0) {
         historyContainer.innerHTML = `<p class="text-zinc-700 text-center py-4">Tiada rekod Maghrib lagi.</p>`;
@@ -537,7 +544,9 @@
       loadPrimer();
     }
 
-    // ==================== 3. WORKOUT LOGIC ====================
+    // ==================== 3. WORKOUT LOGIC (SEHARI SEKALI) ====================
+    let todayWorkoutRecord = null;
+
     async function loadWorkouts() {
       const { data, error } = await db
         .from('workout_logs')
@@ -554,20 +563,49 @@
       const actualWorkouts = logs.filter(l => !l.workout_title.includes('(REST DAY)')).length;
       document.getElementById('totalWorkouts').innerText = actualWorkouts;
 
-      const todayLog = logs.find(l => l.workout_date === todayStr);
+      todayWorkoutRecord = logs.find(l => l.workout_date === todayStr);
       const statusBadge = document.getElementById('todayWorkoutStatusBadge');
+      const titleInput = document.getElementById('workoutTitle');
+      const detailsInput = document.getElementById('workoutDetails');
+      const durationInput = document.getElementById('workoutDuration');
+      const actionBox = document.getElementById('workoutActionButtons');
+      const editBox = document.getElementById('workoutEditContainer');
 
-      if (todayLog) {
-        if (todayLog.workout_title.includes('(REST DAY)')) {
-          statusBadge.innerText = "REST DAY (SELESAI)";
+      if (todayWorkoutRecord) {
+        const isRest = todayWorkoutRecord.workout_title.includes('(REST DAY)');
+        if (isRest) {
+          statusBadge.innerText = "REST DAY (SELESAI) ✓";
           statusBadge.className = "text-[11px] mono font-bold px-2.5 py-1 rounded-full bg-zinc-900 text-amber-400 border border-amber-800";
         } else {
-          statusBadge.innerText = "DONE (EXECUTED)";
+          statusBadge.innerText = "DONE (EXECUTED) ✓";
           statusBadge.className = "text-[11px] mono font-bold px-2.5 py-1 rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800";
         }
+
+        // Paparkan nilai yang dikunci & lumpuhkan input
+        titleInput.value = todayWorkoutRecord.workout_title;
+        detailsInput.value = todayWorkoutRecord.workout_details || '';
+        durationInput.value = todayWorkoutRecord.duration_minutes || '';
+        
+        titleInput.disabled = true;
+        detailsInput.disabled = true;
+        durationInput.disabled = true;
+
+        actionBox.classList.add('hidden');
+        editBox.classList.remove('hidden');
       } else {
         statusBadge.innerText = "REST / BELUM";
         statusBadge.className = "text-[11px] mono font-bold px-2.5 py-1 rounded-full bg-zinc-900 text-zinc-500 border border-zinc-800";
+
+        titleInput.value = "";
+        detailsInput.value = "";
+        durationInput.value = "";
+
+        titleInput.disabled = false;
+        detailsInput.disabled = false;
+        durationInput.disabled = false;
+
+        actionBox.classList.remove('hidden');
+        editBox.classList.add('hidden');
       }
 
       const listEl = document.getElementById('workoutList');
@@ -590,11 +628,20 @@
       `).join('');
     }
 
+    function enableWorkoutEditing() {
+      document.getElementById('workoutTitle').disabled = false;
+      document.getElementById('workoutDetails').disabled = false;
+      document.getElementById('workoutDuration').disabled = false;
+      document.getElementById('workoutActionButtons').classList.remove('hidden');
+      document.getElementById('workoutEditContainer').classList.add('hidden');
+    }
+
     async function submitWorkout(isWorkout) {
       const titleInput = document.getElementById('workoutTitle');
       const detailsInput = document.getElementById('workoutDetails');
       const durationInput = document.getElementById('workoutDuration');
-      const btn = document.getElementById('saveWorkoutBtn');
+      const saveBtn = document.getElementById('saveWorkoutBtn');
+      const skipBtn = document.getElementById('skipWorkoutBtn');
 
       let title = titleInput.value.trim();
       let details = detailsInput.value.trim();
@@ -609,26 +656,41 @@
         return;
       }
 
-      btn.disabled = true;
+      saveBtn.disabled = true;
+      skipBtn.disabled = true;
 
-      const { error } = await db
-        .from('workout_logs')
-        .insert([{
-          workout_title: title,
-          workout_details: details,
-          duration_minutes: duration,
-          workout_date: todayStr
-        }]);
-
-      if (error) {
-        alert("Ralat simpan: " + error.message);
+      // Jika rekod hari ini sudah wujud, kemaskini (update) rekod sedia ada; jika belum, cipta baru (insert)
+      let reqError = null;
+      if (todayWorkoutRecord && todayWorkoutRecord.id) {
+        const { error } = await db
+          .from('workout_logs')
+          .update({
+            workout_title: title,
+            workout_details: details,
+            duration_minutes: duration
+          })
+          .eq('id', todayWorkoutRecord.id);
+        reqError = error;
       } else {
-        titleInput.value = "";
-        detailsInput.value = "";
-        durationInput.value = "";
+        const { error } = await db
+          .from('workout_logs')
+          .insert([{
+            workout_title: title,
+            workout_details: details,
+            duration_minutes: duration,
+            workout_date: todayStr
+          }]);
+        reqError = error;
+      }
+
+      if (reqError) {
+        alert("Ralat simpan workout: " + reqError.message);
+      } else {
         await loadWorkouts();
       }
-      btn.disabled = false;
+
+      saveBtn.disabled = false;
+      skipBtn.disabled = false;
     }
 
     // ==================== 4. DAILY MASTERY (MYSELF) LOGIC ====================
