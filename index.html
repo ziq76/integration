@@ -81,13 +81,13 @@
         <button id="maghribLockBtn" onclick="lockMaghribCycle()" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 font-extrabold text-black rounded-xl text-xs uppercase mono shadow-lg shadow-emerald-950/40">Sahkan Berjaya</button>
       </div>
 
-      <!-- Sejarah Rekod (Dengan Ayat Catatan Log) -->
+      <!-- Sejarah Rekod (ALL Past Records - Tiada Had 10 Sahaja) -->
       <div class="space-y-2">
         <div class="flex justify-between items-center text-[10px] mono uppercase text-zinc-500">
-          <span>Sejarah Kitaran</span>
+          <span>Semua Sejarah Kitaran (All Record)</span>
           <button onclick="loadMaghrib()" class="hover:text-zinc-300">Sync 🔄</button>
         </div>
-        <div id="maghribHistory" class="space-y-1.5 max-h-60 overflow-y-auto pr-1 text-xs mono"></div>
+        <div id="maghribHistory" class="space-y-1.5 max-h-80 overflow-y-auto pr-1 text-xs mono"></div>
       </div>
     </section>
 
@@ -120,7 +120,6 @@
         </div>
         <input type="text" id="primerNote" placeholder="Catatan fizikal (cth: spine decompress, hamstring)..." class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 focus:outline-none focus:border-zinc-500 placeholder:text-zinc-700">
         
-        <!-- Pilihan Buat Selesai vs Tak Buat -->
         <div class="grid grid-cols-2 gap-2 pt-1">
           <button id="primerCommitBtn" onclick="commitPrimer(true)" class="w-full py-3 bg-zinc-100 hover:bg-white text-black font-extrabold rounded-xl text-xs uppercase mono">Commit Selesai ✓</button>
           <button id="primerSkipBtn" onclick="commitPrimer(false)" class="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-rose-400 font-bold rounded-xl text-xs uppercase mono">Tak Buat (Skip) ✕</button>
@@ -181,7 +180,6 @@
             class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-sm mono text-zinc-100 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500">
         </div>
 
-        <!-- Pilihan Simpan Workout vs Rest / Tak Buat -->
         <div class="grid grid-cols-2 gap-2 pt-1">
           <button id="saveWorkoutBtn" onclick="submitWorkout(true)"
             class="w-full py-3.5 bg-zinc-100 hover:bg-white text-black font-extrabold rounded-xl text-xs uppercase mono shadow-lg shadow-zinc-950">
@@ -434,8 +432,14 @@
         btn.className = "w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-xl text-xs uppercase mono";
       }
 
-      // Log sejarah Maghrib memaparkan ayat/catatan refleksi
-      document.getElementById('maghribHistory').innerHTML = logs.slice(-10).reverse().map(l => `
+      // Paparkan KESEMUA rekod sejarah Maghrib (disusun dari terkini ke paling awal)
+      const historyContainer = document.getElementById('maghribHistory');
+      if (logs.length === 0) {
+        historyContainer.innerHTML = `<p class="text-zinc-700 text-center py-4">Tiada rekod Maghrib lagi.</p>`;
+        return;
+      }
+
+      historyContainer.innerHTML = [...logs].reverse().map(l => `
         <div class="p-2.5 rounded-lg bg-zinc-950 border border-zinc-900 space-y-1">
           <div class="flex justify-between items-baseline border-b border-zinc-900/60 pb-1">
             <span class="font-bold text-zinc-300">${l.cycle_date}</span>
@@ -510,7 +514,7 @@
       }
       document.getElementById('primerStreak').innerText = streak;
 
-      document.getElementById('primerHistory').innerHTML = logs.slice(0, 7).map(l => `
+      document.getElementById('primerHistory').innerHTML = logs.map(l => `
         <div class="flex justify-between items-center p-2 rounded-lg bg-zinc-950 border border-zinc-900">
           <div>
             <span class="text-zinc-300 font-bold">${l.stretch_date}</span>
