@@ -22,8 +22,8 @@
     <!-- Top Global Header -->
     <header class="border-b border-zinc-900 pb-3 flex justify-between items-baseline">
       <div>
-        <h1 id="subHeaderLabel" class="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-500 mono">DISCIPLINE PROTOCOL</h1>
-        <div id="moduleTitle" class="text-xl font-black tracking-tight text-white uppercase">MAGHRIB CYCLE</div>
+        <h1 id="subHeaderLabel" class="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-500 mono">CONSCIOUSNESS PROTOCOL</h1>
+        <div id="moduleTitle" class="text-xl font-black tracking-tight text-white uppercase">MAGHRIB TO MAGHRIB</div>
       </div>
       <div id="globalDate" class="mono text-xs text-zinc-500">Memuatkan...</div>
     </header>
@@ -31,18 +31,18 @@
     <!-- ==================== TAB 1: MAGHRIB CYCLE ==================== -->
     <section id="tab-maghrib" class="tab-content space-y-4">
       
-      <!-- Trofi Kejayaan Fasa Maghrib -->
-      <div id="maghribBadgesSection" class="hidden bg-zinc-950 border border-amber-500/30 rounded-2xl p-4 space-y-2">
-        <div class="flex justify-between items-center text-xs mono">
-          <span class="text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <span>🏆</span> FASA MAGHRIB DITAKLUK
-          </span>
-          <span id="maghribBadgesCount" class="text-zinc-400 font-bold">0 Selesai</span>
+      <!-- Banner Kawalan Kesedaran Baharu -->
+      <div class="p-3 bg-zinc-950 border border-emerald-950/80 rounded-2xl flex items-center justify-between">
+        <div class="space-y-0.5">
+          <span class="text-[10px] mono uppercase text-emerald-400 font-bold tracking-wider block">Kitaran Kesedaran Baharu</span>
+          <p class="text-xs text-zinc-400">Titik Mula: <span id="baselineDateLabel" class="mono text-zinc-200 font-semibold">2026-10-21</span></p>
         </div>
-        <div id="maghribBadgesContainer" class="flex flex-wrap gap-2 pt-1"></div>
+        <span class="text-[10px] mono font-bold px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800">
+          RESET ACTIVE
+        </span>
       </div>
 
-      <!-- Scoreboard: Kitaran Semasa & Total -->
+      <!-- Scoreboard: Kitaran Semasa & Total (Dari Hari Ini) -->
       <div class="grid grid-cols-2 gap-3">
         <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4">
           <span class="text-[10px] mono uppercase text-zinc-500 block">Kitaran Fasa Semasa</span>
@@ -52,7 +52,7 @@
           </div>
         </div>
         <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4">
-          <span class="text-[10px] mono uppercase text-zinc-500 block">Total Hari Berjaya</span>
+          <span class="text-[10px] mono uppercase text-zinc-500 block">Kawalan Berjaya (Kini)</span>
           <div class="flex items-baseline gap-1 mt-1">
             <span id="maghribTotalWon" class="text-4xl font-extrabold text-zinc-100 mono">0</span>
             <span class="text-xs text-zinc-500">HARI</span>
@@ -71,23 +71,34 @@
         </div>
       </div>
 
-      <!-- Panel Kunci Hari -->
+      <!-- Panel Kunci Hari (Kawalan Kesedaran) -->
       <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 space-y-3">
         <div class="flex justify-between items-center text-xs">
           <span class="text-zinc-400">Sasaran Kunci: <span id="maghribTargetLabel" class="text-emerald-400 mono font-bold">-</span></span>
           <span id="maghribBadge" class="px-2.5 py-0.5 text-[10px] mono font-bold rounded-full bg-zinc-900 text-zinc-400 border border-zinc-800">Menyemak...</span>
         </div>
-        <textarea id="maghribNote" rows="2" placeholder="Catatan refleksi kitaran ini..." class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-xs mono text-zinc-200 focus:outline-none focus:border-zinc-500 resize-none"></textarea>
-        <button id="maghribLockBtn" onclick="lockMaghribCycle()" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 font-extrabold text-black rounded-xl text-xs uppercase mono shadow-lg shadow-emerald-950/40">Sahkan Berjaya</button>
+        <textarea id="maghribNote" rows="2" placeholder="Audit kawalan kesedaran kitaran ini (cth: fikiran tenang, sedar pilihan, tiada autopilot)..." class="w-full bg-black border border-zinc-800 rounded-xl p-3 text-xs mono text-zinc-200 focus:outline-none focus:border-zinc-500 resize-none"></textarea>
+        <button id="maghribLockBtn" onclick="lockMaghribCycle()" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 font-extrabold text-black rounded-xl text-xs uppercase mono shadow-lg shadow-emerald-950/40">Sahkan Kawalan Ditakluk</button>
       </div>
 
-      <!-- Sejarah Rekod (ALL Past Records) -->
+      <!-- Sejarah Kitaran Baharu -->
       <div class="space-y-2">
         <div class="flex justify-between items-center text-[10px] mono uppercase text-zinc-500">
-          <span>Semua Sejarah Kitaran (All Record)</span>
+          <span>Log Kesedaran (Kitaran Baru)</span>
           <button onclick="loadMaghrib()" class="hover:text-zinc-300">Sync 🔄</button>
         </div>
-        <div id="maghribHistory" class="space-y-1.5 max-h-80 overflow-y-auto pr-1 text-xs mono"></div>
+        <div id="maghribHistoryNew" class="space-y-1.5 max-h-56 overflow-y-auto pr-1 text-xs mono"></div>
+      </div>
+
+      <!-- Visual Arkib Rekod Lama (Legacy Archive Visual) -->
+      <div class="border border-zinc-900/90 rounded-2xl p-3.5 bg-zinc-950/50 space-y-2.5">
+        <div class="flex justify-between items-center text-xs mono">
+          <span class="text-zinc-400 font-bold uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+            <span>🏛️</span> Arkib Kitaran Maghrib Lepas
+          </span>
+          <span id="legacyBadgeCount" class="text-zinc-500 text-[10px]">0 Sesi Disimpan</span>
+        </div>
+        <div id="maghribHistoryLegacy" class="space-y-1.5 max-h-48 overflow-y-auto pr-1 text-xs mono opacity-80"></div>
       </div>
     </section>
 
@@ -135,7 +146,7 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 3: WORKOUT LOG (SEHARI SEKALI) ==================== -->
+    <!-- ==================== TAB 3: WORKOUT LOG ==================== -->
     <section id="tab-workout" class="tab-content hidden space-y-4">
       <div class="grid grid-cols-2 gap-3">
         <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4">
@@ -191,7 +202,6 @@
           </button>
         </div>
 
-        <!-- Butang Kemaskini jika sudah lock hari ini -->
         <div id="workoutEditContainer" class="hidden pt-1">
           <button onclick="enableWorkoutEditing()"
             class="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-zinc-200 font-bold rounded-xl text-xs uppercase mono transition">
@@ -295,9 +305,9 @@
 
   </main>
 
-  <!-- ==================== FIXED BOTTOM NAVIGATION (4 TABS) ==================== -->
+  <!-- ==================== FIXED BOTTOM NAVIGATION ==================== -->
   <nav class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-md border-t border-zinc-900 flex justify-around py-3 max-w-md mx-auto z-50">
-    <button onclick="switchTab('maghrib', 'MAGHRIB CYCLE', 'DISCIPLINE PROTOCOL', this)" class="nav-btn flex flex-col items-center gap-1 text-emerald-400 font-bold">
+    <button onclick="switchTab('maghrib', 'MAGHRIB TO MAGHRIB', 'CONSCIOUSNESS PROTOCOL', this)" class="nav-btn flex flex-col items-center gap-1 text-emerald-400 font-bold">
       <span class="text-base">🌙</span>
       <span class="text-[9px] mono uppercase tracking-wider">Maghrib</span>
     </button>
@@ -321,6 +331,9 @@
     const SUPABASE_KEY = "sb_publishable_5NR1DcL0YZ1Z5416-kX_2w_f8la6ycO";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // Titik mula kiraan baru bagi mengawal kesedaran Maghrib ke Maghrib
+    const MAGHRIB_START_DATE = "2026-10-21";
+
     function getTodayString() {
       const now = new Date();
       const yyyy = now.getFullYear();
@@ -331,6 +344,8 @@
 
     let todayStr = getTodayString();
     document.getElementById('globalDate').innerText = todayStr;
+    const baseLbl = document.getElementById('baselineDateLabel');
+    if (baseLbl) baseLbl.innerText = MAGHRIB_START_DATE;
 
     setInterval(() => {
       const c = getTodayString();
@@ -355,7 +370,7 @@
       btnEl.classList.remove('text-zinc-500');
     }
 
-    // ==================== 1. MAGHRIB LOGIC ====================
+    // ==================== 1. MAGHRIB LOGIC (RESET KE HARI INI & ARKIB LAMA) ====================
     let maghribNextLock = null;
 
     function getLatestEligibleMaghrib() {
@@ -374,11 +389,17 @@
     async function loadMaghrib() {
       const { data } = await db.from('maghrib').select('*').order('cycle_date', { ascending: true });
       const logs = data || [];
-      const totalWon = logs.filter(l => l.completed).length;
-      document.getElementById('maghribTotalWon').innerText = totalWon;
 
-      const completedPhases = Math.floor(totalWon / 30);
-      const cycleDay = (totalWon % 30 === 0 && totalWon > 0) ? 30 : (totalWon % 30);
+      // Asingkan rekod: Rekod baru (>= MAGHRIB_START_DATE) vs Rekod lama (< MAGHRIB_START_DATE)
+      const newLogs = logs.filter(l => l.cycle_date >= MAGHRIB_START_DATE);
+      const legacyLogs = logs.filter(l => l.cycle_date < MAGHRIB_START_DATE);
+
+      // KIRAAN BARU BERMULA HARI INI
+      const currentWon = newLogs.filter(l => l.completed).length;
+      document.getElementById('maghribTotalWon').innerText = currentWon;
+
+      const completedPhases = Math.floor(currentWon / 30);
+      const cycleDay = (currentWon % 30 === 0 && currentWon > 0) ? 30 : (currentWon % 30);
       const currentPhaseNumber = completedPhases + 1;
 
       document.getElementById('maghribCycleDay').innerText = cycleDay;
@@ -388,44 +409,31 @@
       document.getElementById('maghribPhasePercent').innerText = `${pct}%`;
       document.getElementById('maghribProgressBar').style.width = `${pct}%`;
 
-      const badgesSection = document.getElementById('maghribBadgesSection');
-      const badgesContainer = document.getElementById('maghribBadgesContainer');
-      const badgesCountText = document.getElementById('maghribBadgesCount');
-
-      if (completedPhases > 0) {
-        badgesSection.classList.remove('hidden');
-        badgesCountText.innerText = `${completedPhases} Fasa (${completedPhases * 30} Hari)`;
-        
-        let badgesHtml = '';
-        for (let i = 1; i <= completedPhases; i++) {
-          badgesHtml += `
-            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-amber-500/40 text-amber-300 font-bold text-xs mono">
-              <span>★</span> Maghrib Fasa ${i} (30 Hari) Ditakluk
-            </div>
-          `;
-        }
-        badgesContainer.innerHTML = badgesHtml;
-      } else {
-        badgesSection.classList.add('hidden');
+      // Logik Sasaran Kunci Seterusnya (Berasaskan Titik Mula Baru)
+      const eligible = getLatestEligibleMaghrib();
+      let lastLocked = null;
+      if (newLogs.length > 0) {
+        lastLocked = newLogs[newLogs.length - 1].cycle_date;
       }
 
-      let lastDate = "2026-08-30";
-      if (logs.length > 0) lastDate = logs[logs.length - 1].cycle_date;
-
-      const eligible = getLatestEligibleMaghrib();
-      const [y, m, d] = lastDate.split('-').map(Number);
-      const nextDateObj = new Date(y, m - 1, d + 1);
-      const nextY = nextDateObj.getFullYear();
-      const nextM = String(nextDateObj.getMonth() + 1).padStart(2, '0');
-      const nextD = String(nextDateObj.getDate()).padStart(2, '0');
-      maghribNextLock = `${nextY}-${nextM}-${nextD}`;
+      if (!lastLocked) {
+        // Belum kunci sebarang hari dalam kitaran baru
+        maghribNextLock = MAGHRIB_START_DATE;
+      } else {
+        const [y, m, d] = lastLocked.split('-').map(Number);
+        const nextDateObj = new Date(y, m - 1, d + 1);
+        const nextY = nextDateObj.getFullYear();
+        const nextM = String(nextDateObj.getMonth() + 1).padStart(2, '0');
+        const nextD = String(nextDateObj.getDate()).padStart(2, '0');
+        maghribNextLock = `${nextY}-${nextM}-${nextD}`;
+      }
 
       const btn = document.getElementById('maghribLockBtn');
       const badge = document.getElementById('maghribBadge');
       const targetLbl = document.getElementById('maghribTargetLabel');
 
-      if (lastDate >= eligible) {
-        targetLbl.innerText = "Semua Selesai";
+      if (lastLocked && lastLocked >= eligible) {
+        targetLbl.innerText = "Semua Terkunci";
         badge.innerText = "UP-TO-DATE";
         badge.className = "px-2.5 py-0.5 text-[10px] mono font-bold rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800";
         btn.disabled = true;
@@ -433,30 +441,51 @@
         btn.className = "w-full py-3.5 bg-zinc-900 text-zinc-600 rounded-xl text-xs uppercase mono cursor-not-allowed";
       } else {
         targetLbl.innerText = maghribNextLock;
-        badge.innerText = "TERTUNGGAK";
-        badge.className = "px-2.5 py-0.5 text-[10px] mono font-bold rounded-full bg-amber-950/60 text-amber-400 border border-amber-800";
+        badge.innerText = "SEDANG BERJALAN";
+        badge.className = "px-2.5 py-0.5 text-[10px] mono font-bold rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800";
         btn.disabled = false;
-        btn.innerText = `Kunci Hari ${maghribNextLock}`;
+        btn.innerText = `Kunci Hari ${maghribNextLock} (Kesedaran)`;
         btn.className = "w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-xl text-xs uppercase mono";
       }
 
-      const historyContainer = document.getElementById('maghribHistory');
-      if (logs.length === 0) {
-        historyContainer.innerHTML = `<p class="text-zinc-700 text-center py-4">Tiada rekod Maghrib lagi.</p>`;
-        return;
+      // Paparan Visual: Log Kitaran Baharu
+      const newHistoryContainer = document.getElementById('maghribHistoryNew');
+      if (newLogs.length === 0) {
+        newHistoryContainer.innerHTML = `
+          <div class="p-3 bg-zinc-950/40 border border-dashed border-zinc-900 rounded-xl text-center text-zinc-600">
+            Kitaran kawalan kesedaran bermula harini. Belum ada rekod dikunci.
+          </div>`;
+      } else {
+        newHistoryContainer.innerHTML = [...newLogs].reverse().map(l => `
+          <div class="p-2.5 rounded-lg bg-zinc-950 border border-zinc-900 space-y-1">
+            <div class="flex justify-between items-baseline border-b border-zinc-900/60 pb-1">
+              <span class="font-bold text-zinc-300">${l.cycle_date}</span>
+              <span class="${l.completed ? 'text-emerald-400' : 'text-rose-400'} font-bold text-[10px]">${l.completed ? 'KAWALAN PENUH ✓' : 'TERGELINCIR'}</span>
+            </div>
+            <div class="text-zinc-400 text-xs italic">
+              "${l.notes || 'Kesedaran berjaya ditakluk.'}"
+            </div>
+          </div>
+        `).join('');
       }
 
-      historyContainer.innerHTML = [...logs].reverse().map(l => `
-        <div class="p-2.5 rounded-lg bg-zinc-950 border border-zinc-900 space-y-1">
-          <div class="flex justify-between items-baseline border-b border-zinc-900/60 pb-1">
-            <span class="font-bold text-zinc-300">${l.cycle_date}</span>
-            <span class="${l.completed ? 'text-emerald-400' : 'text-rose-400'} font-bold text-[10px]">${l.completed ? 'BERJAYA ✓' : 'TERTINGGAL'}</span>
+      // Paparan Visual: Arkib Rekod Lama
+      const legacyHistoryContainer = document.getElementById('maghribHistoryLegacy');
+      document.getElementById('legacyBadgeCount').innerText = `${legacyLogs.length} Sesi Disimpan`;
+      
+      if (legacyLogs.length === 0) {
+        legacyHistoryContainer.innerHTML = `<p class="text-zinc-700 text-center py-2">Tiada rekod arkib terdahulu.</p>`;
+      } else {
+        legacyHistoryContainer.innerHTML = [...legacyLogs].reverse().map(l => `
+          <div class="p-2 rounded-lg bg-black/60 border border-zinc-900 flex justify-between items-center text-[11px]">
+            <div class="space-y-0.5">
+              <span class="text-zinc-400 font-semibold">${l.cycle_date}</span>
+              <div class="text-zinc-600 text-[10px] truncate max-w-[240px] italic">"${l.notes || 'Kitaran selesai'}"</div>
+            </div>
+            <span class="text-[9px] mono px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">ARKIB</span>
           </div>
-          <div class="text-zinc-400 text-xs italic">
-            "${l.notes || 'Kitaran berjaya ditakluk.'}"
-          </div>
-        </div>
-      `).join('');
+        `).join('');
+      }
     }
 
     async function lockMaghribCycle() {
@@ -465,7 +494,7 @@
       await db.from('maghrib').upsert({
         cycle_date: maghribNextLock,
         completed: true,
-        notes: note || 'Kitaran berjaya ditakluk.'
+        notes: note || 'Kawalan kesedaran Maghrib ke Maghrib ditakluk.'
       }, { onConflict: 'cycle_date' });
       document.getElementById('maghribNote').value = "";
       loadMaghrib();
@@ -581,7 +610,6 @@
           statusBadge.className = "text-[11px] mono font-bold px-2.5 py-1 rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800";
         }
 
-        // Paparkan nilai yang dikunci & lumpuhkan input
         titleInput.value = todayWorkoutRecord.workout_title;
         detailsInput.value = todayWorkoutRecord.workout_details || '';
         durationInput.value = todayWorkoutRecord.duration_minutes || '';
@@ -659,7 +687,6 @@
       saveBtn.disabled = true;
       skipBtn.disabled = true;
 
-      // Jika rekod hari ini sudah wujud, kemaskini (update) rekod sedia ada; jika belum, cipta baru (insert)
       let reqError = null;
       if (todayWorkoutRecord && todayWorkoutRecord.id) {
         const { error } = await db
